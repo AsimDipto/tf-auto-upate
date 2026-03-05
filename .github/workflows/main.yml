@@ -1,4 +1,4 @@
-name: tf auto update
+name: AD IPTV PRO Auto Sync
 
 on:
   schedule:
@@ -37,9 +37,14 @@ jobs:
           git config --global user.name "Asim Dipto"
           git config --global user.email "asimdipto@github.com"
           
-          # Fix for "Updates were rejected" error
+          # 1. Add files first to avoid "unstaged changes" error
+          git add .
+          
+          # 2. Pull with rebase now that changes are staged
           git pull origin main --rebase
           
-          git add .
+          # 3. Commit only if there's something new
           git commit -m "Auto Update: Links & Logos (Run ID: ${{ github.run_id }})" || exit 0
+          
+          # 4. Final push
           git push origin main
