@@ -2,11 +2,11 @@ name: Toffee Smart Auto Sync
 
 on:
   schedule:
-    - cron: '*/30 * * * *' # প্রতি ৩০ মিনিট পর পর অটো রান হবে
-  workflow_dispatch:      # আপনি চাইলে গিটহাব থেকে ম্যানুয়ালি রান করতে পারবেন
+    - cron: '*/30 * * * *' 
+  workflow_dispatch:      
   push:
     paths:
-      - 'tf.zip'          # আপনার tf.zip ফাইল আপডেট করলেই এটি রান হবে
+      - 'tf.zip'          
 
 permissions:
   contents: write
@@ -18,7 +18,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # ফুল হিস্ট্রি ডাউনলোড করবে যেন পুশ রিজেক্ট না হয়
+          fetch-depth: 0 
           persist-credentials: true
 
       - name: Install Tools
@@ -34,7 +34,7 @@ jobs:
 
       - name: Run Python Script
         run: |
-          # আপনার জিপের ভেতর ফাইলের নাম tf.py হতে হবে
+          
           python3 tmp_script/tf.py
 
       - name: Cleanup
@@ -45,11 +45,11 @@ jobs:
           git config --global user.name "Asim Dipto"
           git config --global user.email "asimdipto@example.com"
           
-          # ইমেজ ৯-এর এরর এড়াতে পুশ করার আগে রিমোট চেঞ্জ পুল করে নিবে
+          
           git pull origin main --rebase
           
           git add toffee_OTT_Navigator.m3u toffee_NS_Player.m3u toffee_channel_data.json
           
-          # যদি কোনো পরিবর্তন থাকে তবেই কেবল কমিট করবে
+        
           git commit -m "🔁 Auto sync with source" || echo "No changes to commit"
           git push origin main
