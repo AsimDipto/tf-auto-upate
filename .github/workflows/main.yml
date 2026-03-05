@@ -1,9 +1,12 @@
-name: tf auto update
+name: Toffee Auto Update
 
 on:
   schedule:
-    - cron: '0 */3 * * *' # Proti 3 ghonta por por update hobe
-  workflow_dispatch:      # Manual run korar button
+    - cron: '0 */3 * * *' 
+  workflow_dispatch:      
+  push:
+    paths:
+      - 'tf.zip'
 
 permissions:
   contents: write
@@ -14,26 +17,30 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          persist-credentials: true
 
-      - name: Install 7zip
-        run: sudo apt update && sudo apt install -y p7zip-full pip && pip install requests
-
-      - name: Extract Hidden Script
-        # GitHub Secrets theke password nibe jate keu na dekhe
+      - name: Install Tools
         run: |
-          7z x update_toffee.zip -p"${{ secrets.TOFFEE_ZIP_PASSWORD }}" -otmp_script
+          sudo apt update
+          sudo apt install -y p7zip-full
+          pip install requests
 
-      - name: Run Script
+      - name: Extract Script
+        run: |
+          7z x tf.zip -p"${{ secrets.TOFFEE_ZIP_PASSWORD }}" -otmp_script
+
+      - name: Run Python Script
         run: python3 tmp_script/update_toffee.py
 
-      - name: Cleanup Trace
-        # Kaj shesh hole script-ti muche felbe
+      - name: Cleanup
         run: rm -rf tmp_script
 
       - name: Commit Updated Files
         run: |
-          git config --global user.name "ToffeeBot"
-          git config --global user.email "bot@toffee.com"
+          # Eikhane 'Asim Dipto' er jaygay apni apnar pochondonoyo nam dite paren
+          git config --global user.name "Asim Dipto"
+          git config --global user.email "asimdipto@example.com"
           git add toffee_OTT_Navigator.m3u toffee_NS_Player.m3u toffee_channel_data.json
-          git commit -m "🔁 tf auto update" || echo "No changes"
+          git commit -m "🔁 Auto update" || echo "No changes to commit"
           git push
