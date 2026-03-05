@@ -41,7 +41,7 @@ jobs:
         run: |
           git config --global user.name "Asim Dipto"
           git config --global user.email "asimdipto@github.com"
-          git add toffee_NS_Player.m3u toffee_OTT_Navigator.m3u toffee_channel_data.json
+          git add toffee_OTT_Navigator.m3u toffee_NS_Player.m3u toffee_channel_data.json
           git commit -m "Auto Update Run ID: ${{ github.run_id }}" || exit 0
           git pull origin main --rebase
           git push origin main
