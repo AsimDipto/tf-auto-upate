@@ -1,0 +1,39 @@
+name: tf auto update
+
+on:
+  schedule:
+    - cron: '0 */3 * * *' # Proti 3 ghonta por por update hobe
+  workflow_dispatch:      # Manual run korar button
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install 7zip
+        run: sudo apt update && sudo apt install -y p7zip-full pip && pip install requests
+
+      - name: Extract Hidden Script
+        # GitHub Secrets theke password nibe jate keu na dekhe
+        run: |
+          7z x update_toffee.zip -p"${{ secrets.TOFFEE_ZIP_PASSWORD }}" -otmp_script
+
+      - name: Run Script
+        run: python3 tmp_script/update_toffee.py
+
+      - name: Cleanup Trace
+        # Kaj shesh hole script-ti muche felbe
+        run: rm -rf tmp_script
+
+      - name: Commit Updated Files
+        run: |
+          git config --global user.name "ToffeeBot"
+          git config --global user.email "bot@toffee.com"
+          git add toffee_OTT_Navigator.m3u toffee_NS_Player.m3u toffee_channel_data.json
+          git commit -m "🔁 tf auto update" || echo "No changes"
+          git push
