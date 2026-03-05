@@ -1,50 +1,47 @@
-name: AD IPTV PRO Auto Sync
+name: Toffee Auto Update
 
 on:
   schedule:
-    - cron: '*/30 * * * *'
-  workflow_dispatch:
+    - cron: '0 */3 * * *' 
+  workflow_dispatch:      
+  push:
+    paths:
+      - 'tf.zip'
 
-concurrency:
-  group: sync-group
-  cancel-in-progress: true
+permissions:
+  contents: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          persist-credentials: true
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'
-
-      - name: Install Dependencies
-        run: pip install requests
-
-      - name: Extract and Run Script
+      - name: Install Tools
         run: |
-          7z x tf.zip -p"${{ secrets.TOFFEE_ZIP_PASSWORD }}" -y
-          python3 tf.py
+          sudo apt update
+          sudo apt install -y p7zip-full
+          pip install requests
 
-      - name: Commit and Push Changes
+      - name: Extract Script
+        run: |
+          mkdir -p tmp_script
+          7z x tf.zip -p"${{ secrets.TOFFEE_ZIP_PASSWORD }}" -otmp_script
+
+      - name: Run Python Script
+        # Eikhane file path-ti thik kora hoyeche apnar log onujayi
+        run: python3 tmp_script/tf.py
+
+      - name: Cleanup
+        run: rm -rf tmp_script
+
+      - name: Commit Updated Files
         run: |
           git config --global user.name "Asim Dipto"
-          git config --global user.email "asimdipto@github.com"
-          
-          # 1. Add files first to avoid "unstaged changes" error
-          git add .
-          
-          # 2. Pull with rebase now that changes are staged
-          git pull origin main --rebase
-          
-          # 3. Commit only if there's something new
-          git commit -m "Auto Update: Links & Logos (Run ID: ${{ github.run_id }})" || exit 0
-          
-          # 4. Final push
-          git push origin main
+          git config --global user.email "asimdipto@example.com"
+          git add toffee_OTT_Navigator.m3u toffee_NS_Player.m3u toffee_channel_data.json
+          git commit -m "🔁 Auto update" || echo "No changes"
+          git push
