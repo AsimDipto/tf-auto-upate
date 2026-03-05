@@ -37,30 +37,20 @@ jobs:
       - name: Cleanup
         run: rm -rf tmp_script
 
-      - name: Commit and Push Changes
+            - name: Commit and Push Changes
         run: |
           git config --global user.name "Asim Dipto"
           git config --global user.email "asimdipto@github.com"
           
-          # Stage files first to avoid "unstaged changes" error (Fix for Image 9)
+          # ১. প্রথমে সব নতুন ফাইল অ্যাড করুন
           git add toffee_OTT_Navigator.m3u toffee_NS_Player.m3u toffee_channel_data.json
           
-          # Pull with rebase to sync with GitHub
+          # ২. ফাইলগুলো আগে সেভ (Commit) করে নিন, নাহলে রিবেস এরর দিবে (ইমেজ ১ ও ২ এর সমাধান)
+          git commit -m "🔁 Auto Update: Links & Logos" || echo "No changes to commit"
+          
+          # ৩. এখন রিমোট থেকে নতুন কিছু থাকলে তা নিয়ে নিন
           git pull origin main --rebase
           
-          # Commit only if changes exist
-          git commit -m "🔁 Auto update: Links & Logos" || exit 0
-          
-          # Final Push
+          # ৪. ফাইনাল পুশ
           git push origin main
 
-      - name: Cleanup
-        run: rm -rf tmp_script
-
-      - name: Commit Updated Files
-        run: |
-          git config --global user.name "Asim Dipto"
-          git config --global user.email "asimdipto@example.com"
-          git add toffee_OTT_Navigator.m3u toffee_NS_Player.m3u toffee_channel_data.json
-          git commit -m "🔁 Auto update" || echo "No changes"
-          git push
