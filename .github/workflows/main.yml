@@ -20,6 +20,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup
         run: |
@@ -43,5 +45,6 @@ jobs:
           else
             git commit -m "Auto Sync: $(date +'%H:%M:%S')"
             git pull origin main --rebase
+            # এখানে অটোমেটিক ডিফল্ট টোকেন কাজ করবে
             git push origin main
           fi
