@@ -1,11 +1,9 @@
-name: Toffee Instant Sync (Self Loop)
+name: Toffee Instant Sync
 
 on:
   schedule:
-    - cron: '0 * * * *'
+    - cron: '0 * * * *' # Runs every 1 hour
   workflow_dispatch:      
-  repository_dispatch:
-    types: [next_sync]
   push:
     paths:
       - 'tf.zip'
@@ -18,64 +16,31 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout Repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
 
-      - name: Setup & Run
+      - name: Setup Environment & Run Scraper
+        env:
+          ZIP_PASS: ${{ secrets.TOFFEE_ZIP_PASSWORD }}
         run: |
           sudo apt install -y p7zip-full > /dev/null 2>&1
           pip install requests > /dev/null 2>&1
           mkdir -p tmp_script
-          7z x tf.zip -p"${{ secrets.TOFFEE_ZIP_PASSWORD }}" -y -otmp_script > /dev/null 2>&1
+          7z x tf.zip -p"$ZIP_PASS" -y -otmp_script > /dev/null 2>&1
           python3 tmp_script/tf.py
           rm -rf tmp_script
 
-      - name: Push Changes
+      - name: Push Updated Playlists
         run: |
           git config --global user.name "Asim Dipto"
           git config --global user.email "asimdipto@github.com"
           git add .
           if ! git diff --staged --quiet; then
-            git commit -m "Auto Sync: $(date +'%H:%M:%S')"
-            git push origin main
-          fi
-
-      - name: Background Scheduler (1 Hour)
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # রাত ১২:৩০ (UTC 18:30) এর পর হলে লুপ থামবে
-          CURRENT_HOUR_UTC=$(date -u +%H)
-          CURRENT_MIN_UTC=$(date -u +%M)
-          
-          if [ "$CURRENT_HOUR_UTC" -eq 18 ] && [ "$CURRENT_MIN_UTC" -ge 30 ] || [ "$CURRENT_HOUR_UTC" -gt 18 ]; then
-            echo "Stopping for tonight."
-          else
-            echo "Scheduling next run in 60 minutes..."
-            # ২০ সেকেন্ডে গ্রিন টিক আসবে, কিন্তু আড়ালে টাইমার চলবে
-            (
-              sleep 3600 # ৬০ মিনিট (১ ঘণ্টা)। ১৮ মিনিট চাইলে ১০৮০ দাও।
-              curl -X POST https://api.github.com/repos/${{ github.repository }}/dispatches \
-              -H "Accept: application/vnd.github.v3+json" \
-              -H "Authorization: token $GH_TOKEN" \
-              -d '{"event_type": "next_sync"}'
-            ) &
-            disown
-          fi
-          exit 0
-
-      - name: Push
-        run: |
-          git config --global user.name "Asim Dipto"
-          git config --global user.email "asimdipto@github.com"
-          git add .
-          if git diff --staged --quiet; then
-            echo "No change"
-          else
-            git commit -m "Auto Sync: $(date +'%H:%M:%S')"
+            git commit -m "Auto Sync: $(date +'%Y-%m-%d %H:%M:%S')"
             git pull origin main --rebase
-            # এখানে অটোমেটিক ডিফল্ট টোকেন কাজ করবে
             git push origin main
+          else
+            echo "No changes found."
           fi
